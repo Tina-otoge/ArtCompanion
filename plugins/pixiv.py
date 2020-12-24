@@ -10,6 +10,11 @@ PIXIV_ARTWORK_LINK_OLD_RE = re.compile(r'https://www\.pixiv\.net/member_illust\.
 STORAGE_FILE = 'pixiv_users.json'
 
 class PixivUser(dict):
+    TRIGGERS = {
+        '❤️': None,
+        # '👀': None,
+    }
+
     def __init__(self, username, password):
         dict.__init__(self, username=username, password=password)
         self.username = username
@@ -60,12 +65,8 @@ class PixivPlugin(Plugin):
 
     @Plugin.listen('MessageReactionAdd')
     def on_reaction_add(self, event):
-        triggers = {
-            '❤️': None,
-            # '👀': None,
-        }
         user = self.get_user(event.user_id)
-        if not user or event.emoji.name not in triggers:
+        if not user or event.emoji.name not in self.TRIGGERS:
             return
         content = event.client.api.channels_messages_get(event.channel_id, event.message_id).content
         matches = re.search(PIXIV_ARTWORK_LINK_RE, content) or re.search(PIXIV_ARTWORK_LINK_OLD_RE, content)
@@ -77,3 +78,17 @@ class PixivPlugin(Plugin):
         print('Bookmarked {} on behalf of user {} as {}'.format(
             work_id, event.user_id, user.username
         ))
+
+    @Plugin.listen('MessageCreate')
+    def on_message_create(self, event):
+        content = event.client.api.channels_messages_get(event.channel_id, event.message_id).content
+        matches = re.sarch(PIXIV_ARTWORK_LINK_RE, content) or re.search(PIXIV_ARTWORK_LINK_OLD_RE, content)
+        if matches is None:
+            return
+        print('Pixiv link detected, adding triggers...')
+        for emoji in self.TRIGGERS
+            event.client.api.channels_messages_reactions_create(
+                event.channel_id,
+                event.message_id,
+                emoji,
+            )
