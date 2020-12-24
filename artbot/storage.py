@@ -11,13 +11,13 @@ class Storage:
             self.data = {}
 
     def save(self):
-        with open(self.path, 'wb') as f:
+        with open(self.path, 'w') as f:
             json.dump(self.data, f)
 
-    def get(self, key, default):
+    def get(self, key, default=None):
         result = self.data.get(key, default)
         if self.save_on_read:
-            self.data.set(key, result)
+            self.set(key, result)
         return result
 
     def set(self, key, value):
