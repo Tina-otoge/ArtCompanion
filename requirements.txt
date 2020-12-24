@@ -1,3 +1,4 @@
-gevent
-disco-py
+discord.py
+
 pixivpy
+python-twitter
