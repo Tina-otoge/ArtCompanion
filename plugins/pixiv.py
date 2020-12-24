@@ -10,17 +10,17 @@ PIXIV_ARTWORK_LINK_OLD_RE = re.compile(r'https://www\.pixiv\.net/member_illust\.
 STORAGE_FILE = 'pixiv_users.json'
 
 class PixivUser(dict):
-    TRIGGERS = {
-        '❤️': None,
-        # '👀': None,
-    }
-
     def __init__(self, username, password):
         dict.__init__(self, username=username, password=password)
         self.username = username
         self.password = password
 
 class PixivPlugin(Plugin):
+    TRIGGERS = {
+        '❤️': None,
+        # '👀': None,
+    }
+
     def load(self, context):
         super(PixivPlugin, self).load(context)
         try:
@@ -47,7 +47,10 @@ class PixivPlugin(Plugin):
         self.logoff()
 
     def get_user(self, id):
-        return PixivUser(**self.users.get(str(id)))
+        user = self.users.get(str(id))
+        if not user:
+            return None
+        return PixivUser(**user)
 
     @Plugin.command('register', '<username:str> <password:str>', group='pixiv')
     def register(self, event, username, password):
@@ -65,6 +68,8 @@ class PixivPlugin(Plugin):
 
     @Plugin.listen('MessageReactionAdd')
     def on_reaction_add(self, event):
+        if self.client.state.me.id == event.user_id:
+            return
         user = self.get_user(event.user_id)
         if not user or event.emoji.name not in self.TRIGGERS:
             return
@@ -81,14 +86,14 @@ class PixivPlugin(Plugin):
 
     @Plugin.listen('MessageCreate')
     def on_message_create(self, event):
-        content = event.client.api.channels_messages_get(event.channel_id, event.message_id).content
-        matches = re.sarch(PIXIV_ARTWORK_LINK_RE, content) or re.search(PIXIV_ARTWORK_LINK_OLD_RE, content)
+        content = event.client.api.channels_messages_get(event.channel_id, event.id).content
+        matches = re.search(PIXIV_ARTWORK_LINK_RE, content) or re.search(PIXIV_ARTWORK_LINK_OLD_RE, content)
         if matches is None:
             return
         print('Pixiv link detected, adding triggers...')
-        for emoji in self.TRIGGERS
+        for emoji in self.TRIGGERS:
             event.client.api.channels_messages_reactions_create(
                 event.channel_id,
-                event.message_id,
+                event.id,
                 emoji,
             )
