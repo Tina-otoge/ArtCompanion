@@ -1,2 +1,3 @@
+gevent
 disco-py
 pixivpy
