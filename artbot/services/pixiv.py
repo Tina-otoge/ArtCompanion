@@ -1,19 +1,28 @@
-import re
+from pixivpy3 import AppPixivAPI
 
-from .. import bot
+from .ReactionService import Service
 
-PIXIV_ARTWORK_LINK_RE = re.compile(r'https://www\.pixiv\.net/(?:\w{2}/)?artworks/(\d+)')
-PIXIV_ARTWORK_LINK_OLD_RE = re.compile(r'https://www\.pixiv\.net/member_illust\.php\?(?:.*)?illust_id=(\d+)(?:.*)?')
+class Pixiv(Service):
+    def __init__(self):
+        super().__init__(
+            extracters=[
+                r'https://www\.pixiv\.net/(?:\w{2}/)?artworks/(\d+)',
+                r'https://www\.pixiv\.net/member_illust\.php\?(?:.*)?illust_id=(\d+)(?:.*)?',
+            ],
+            triggers={
+                '❤️': 'pixiv_like',
+                # '👀': 'pixiv_follow',
+            },
+            data_key='pixiv_users',
+            authenticator=self.pixiv_login,
+        )
 
-def extract_id(s: str):
-    matches = (
-        re.search(PIXIV_ARTWORK_LINK_RE, s) or
-        re.search(PIXIV_ARTWORK_LINK_OLD_RE, s)
-    )
-    if matches is None:
-        return None
-    return matches.group(1)
+    @staticmethod
+    def pixiv_login(credentials):
+        result = AppPixivAPI()
+        result.login(credentials[0], credentials[1])
+        return result
 
-@bot.command('pixiv')
-async def register(ctx):
-    print(ctx)
+    @staticmethod
+    def pixiv_like(api, work_id):
+        api.illust_bookmark_add(work_id)
