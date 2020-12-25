@@ -68,6 +68,8 @@ class ServicesHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        if message.author == self.bot.user:
+            return
         for service in self.services.values():
             match = service.extract(message.content)
             if not match:
@@ -79,6 +81,8 @@ class ServicesHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, user: discord.User):
+        if user == self.bot.user:
+            return
         for service in self.services.values():
             trigger = service.triggers.get(reaction.emoji)
             if not trigger:
