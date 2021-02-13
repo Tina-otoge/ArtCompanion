@@ -20,7 +20,7 @@ class Pixiv(Service):
     @staticmethod
     def pixiv_login(credentials):
         result = AppPixivAPI()
-        result.login(credentials[0], credentials[1])
+        result.auth(refresh_token=credentials[0])
         return result
 
     @staticmethod
