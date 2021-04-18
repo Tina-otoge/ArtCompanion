@@ -1,4 +1,6 @@
 #!/bin/bash
 
-./scripts/setup.sh
-./scripts/launch.sh
+python -m venv .venv
+./.venv/bin/pip install -r requirements.txt
+
+./.venv/bin/python -m artbot
