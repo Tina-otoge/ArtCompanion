@@ -41,6 +41,7 @@ class FeedCog(commands.Cog):
                 log.debug(f'Handling feed #{index} {rules}')
                 memory = await self.handle(rules)
                 if memory:
+                    log.debug(f'Updating memory to {memory}')
                     feeds[index]['memory'] = memory
                     data.set('feeds', feeds)
         except asyncio.CancelledError:
@@ -69,11 +70,13 @@ class FeedCog(commands.Cog):
 
         api = proxy.login(user_id=rules.get('discord_user'))
         if not api:
+            log.warning('Could not login')
             return
 
         if self.IGNORE_MEMORY:
             del rules['memory']
         result = feed.handle(api, rules)
+        memory = result.get('memory')
         for result in result.get('result', [])[:self.RESULTS_LIMIT]:
             if len(result.get('files', [])) > self.PICS_LIMIT:
                 result['content'] = (
@@ -94,7 +97,7 @@ class FeedCog(commands.Cog):
                 log.error(f'Failed to post {result}')
                 await on_error(self.handle)
             time.sleep(self.WAIT_ITERATION_TIME)
-        return result.get('memory')
+        return memory
 
 
     @staticmethod

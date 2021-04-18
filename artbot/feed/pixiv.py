@@ -65,7 +65,6 @@ class Pixiv(Feed):
 
     @classmethod
     def message_from_post(cls, post) -> dict:
-
         link = f'<https://pixiv.net/artworks/{post.id}>'
         log.debug(f'Parsing pixiv post {link}')
         title = post.title
