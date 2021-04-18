@@ -17,11 +17,11 @@ class FeedCog(commands.Cog):
     # Time between each post, avoid API limit
     WAIT_ITERATION_TIME = 2
     # Limit the amount of posts to post. WARNING: will update memory like if all posts were posted
-    RESULTS_LIMIT = 2
+    RESULTS_LIMIT = None
     # Limit of pics to post per post
     PICS_LIMIT = 10
     # Should the memory be ignored
-    IGNORE_MEMORY = True
+    IGNORE_MEMORY = False
     # Time before each iteration
     LOOP_TIME = {'hours': 1}
 
