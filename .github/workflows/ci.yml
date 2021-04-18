@@ -18,5 +18,6 @@ jobs:
         with:
           key: ${{ secrets.SSH_KEY }}
           host: ${{ secrets.PROD_HOST }}
+          debug: true
           script: |
             systemctl --user restart artcompanion
