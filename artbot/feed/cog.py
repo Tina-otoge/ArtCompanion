@@ -19,7 +19,7 @@ class FeedCog(commands.Cog):
     # Limit the amount of posts to post. WARNING: will update memory like if all posts were posted
     RESULTS_LIMIT = None
     # Limit of pics to post per post
-    PICS_LIMIT = 10
+    PICS_LIMIT = 5
     # Should the memory be ignored
     IGNORE_MEMORY = False
     # Time before each iteration
@@ -75,31 +75,46 @@ class FeedCog(commands.Cog):
             del rules['memory']
         result = feed.handle(api, rules)
         for result in result.get('result', [])[:self.RESULTS_LIMIT]:
-            result['files'] = [
-                {'file': self.download(x.get('url')), 'name': x.get('name')}
-                for x in result.get('files', [])[:self.PICS_LIMIT]
-            ]
-            if channel:
-                await self.post(result, channel)
-            if webhooks:
-                hook = DiscordWebhook(
-                    webhooks,
-                    content=result.get('content'),
-                    **rules.get('webhook_options'),
+            if len(result.get('files', [])) > self.PICS_LIMIT:
+                result['content'] = (
+                    result.get('content', '')
+                    + f'\n({len(result["files"]) - self.PICS_LIMIT} more pictures not shown)'
                 )
-                for file in result.get('files', []):
-                    hook.add_file(file=file.get('file'), filename=file.get('name'))
-                hook.execute()
+                result['files'] = result['files'][:self.PICS_LIMIT]
+            try:
+                result['files'] = [
+                    {'file': self.download(x.get('url')), 'name': x.get('name')}
+                    for x in result.get('files', [])
+                ]
+                if channel:
+                    await self.post_channel(result, channel)
+                if webhooks:
+                    self.post_webhooks(result, webhooks, rules.get('webhook_options', {}))
+            except Exception:
+                log.error(f'Failed to post {result}')
+                await on_error(self.handle)
             time.sleep(self.WAIT_ITERATION_TIME)
         return result.get('memory')
 
+
     @staticmethod
-    async def post(result, channel):
+    async def post_channel(result, channel):
         result['files'] = [
             discord.File(x.get('file'), filename=x.get('name'))
             for x in result.get('files', [])
         ]
         await channel.send(**result)
+
+    @staticmethod
+    def post_webhooks(result, webhooks, options):
+        hook = DiscordWebhook(
+            webhooks,
+            content=result.get('content'),
+            **options,
+        )
+        for file in result.get('files', []):
+            hook.add_file(file=file.get('file'), filename=file.get('name'))
+        hook.execute()
 
     @staticmethod
     def download(url):

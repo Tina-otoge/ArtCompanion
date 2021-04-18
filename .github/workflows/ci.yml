@@ -16,7 +16,7 @@ jobs:
       - name: Restart production
         uses: appleboy/ssh-action@master
         with:
-          user: ${{ secrets.PROD_USER }}
+          username: ${{ secrets.PROD_USER }}
           key: ${{ secrets.SSH_KEY }}
           host: ${{ secrets.PROD_HOST }}
           script: |
