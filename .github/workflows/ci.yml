@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Restart production
+        uses: appleboy/ssh-action@master
+        with:
+          user: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          host: ${{ secrets.PROD_HOST }}
+          script: |
+            systemctl --user restart artcompanion

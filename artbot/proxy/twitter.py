@@ -1,9 +1,9 @@
 import twitter
 
-from .. import config
-from .ReactionService import Service
+from artbot import config
+from .proxy import Proxy
 
-class Twitter(Service):
+class Twitter(Proxy):
     def __init__(self):
         super().__init__(
             extracters=[

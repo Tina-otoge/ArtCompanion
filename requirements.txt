@@ -1,4 +1,5 @@
 discord.py
 
+discord-webhook
 pixivpy
 python-twitter
