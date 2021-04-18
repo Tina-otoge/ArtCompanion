@@ -1,5 +1,5 @@
 #!/bin/bash
-
+[ -f ~/.profile ] && . ~/.profile
 if [[ "$ENV" == prod* ]]; then
 	git checkout .
 	git pull
