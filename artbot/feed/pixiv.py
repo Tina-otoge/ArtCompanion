@@ -54,7 +54,7 @@ class Pixiv(Feed):
             else [post.image_urls]
         )
         png = urls[0].large.endswith('.png')
-        size = 'medium' if png and post.width > 2000 else 'large'
+        size = 'medium' if (post.is_manga or (png and post.width > 2000)) else 'large'
         return [
             {
                 'url': x[size],
