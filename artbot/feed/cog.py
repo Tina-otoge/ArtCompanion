@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 import io
 import logging
 import requests
@@ -39,6 +40,9 @@ class FeedCog(commands.Cog):
             feeds = data.get('feeds', [])
             for index, rules in enumerate(feeds):
                 log.debug(f'Handling feed #{index} {rules}')
+                await self.bot.change_presence(activity=discord.Game(
+                    f'feed {index}'
+                ))
                 memory = await self.handle(rules)
                 if memory:
                     log.debug(f'Updating memory to {memory}')
@@ -48,6 +52,10 @@ class FeedCog(commands.Cog):
             pass
         except Exception:
             await on_error(self.loop)
+        await self.bot.change_presence(activity=discord.Activity(
+            type=discord.ActivityType.listening,
+            name=f'since {datetime.now().strftime("%H:%M %Y-%m-%d")}',
+        ))
 
     @loop.before_loop
     async def loop_before(self):
