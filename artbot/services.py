@@ -1,3 +1,10 @@
+"""
+Module to ease the manipulation of subclasses of a specific class, usually
+representing the implementation for a service, for example Proxy->Twitter, or
+Feed->Pixiv
+"""
+
+
 def all(class_, init=False):
     result = class_.__subclasses__()
     if init:

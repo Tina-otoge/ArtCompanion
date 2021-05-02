@@ -4,6 +4,7 @@ import io
 import logging
 import requests
 import time
+from arrow import Arrow
 import discord
 from discord.ext import commands, tasks
 from discord_webhook import DiscordWebhook
@@ -18,6 +19,7 @@ class FeedCog(commands.Cog):
     # Time between each post, avoid API limit
     WAIT_ITERATION_TIME = 2
     # Limit the amount of posts to post. WARNING: will update memory like if all posts were posted
+    # Change this to 0 for "dry" mode
     RESULTS_LIMIT = None
     # Limit of pics to post per post
     PICS_LIMIT = 5
@@ -29,10 +31,24 @@ class FeedCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot : commands.Bot = bot
         self.loop.start()
+        self.update_status.start()
 
     @commands.command()
     async def watch(self, context: commands.Context, service, *args):
+        """
+        Bridges a feed to a Discord channel
+        """
         raise NotImplementedError
+
+    @tasks.loop(seconds=30)
+    async def update_status(self):
+        dt = self.loop.next_iteration
+        if not dt:
+            return
+        time = Arrow.fromdatetime(self.loop.next_iteration)
+        await self.bot.change_presence(activity=discord.Game(
+            f'next feed {time.humanize()}'
+        ))
 
     @tasks.loop(**LOOP_TIME)
     async def loop(self):
@@ -52,10 +68,6 @@ class FeedCog(commands.Cog):
             pass
         except Exception:
             await on_error(self.loop)
-        await self.bot.change_presence(activity=discord.Activity(
-            type=discord.ActivityType.listening,
-            name=f'since {datetime.now().strftime("%H:%M %Y-%m-%d")}',
-        ))
 
     @loop.before_loop
     async def loop_before(self):

@@ -25,11 +25,11 @@ async def on_error(e, *args, **kwargs):
     await Bot.on_error(bot, e, *args, **kwargs)
     string = io.StringIO()
     traceback.print_exc(file=string)
-    reporting.log('Error', f'```{string.getvalue()}```')
+    reporting.log('Error', f'```\n{string.getvalue()}```')
 
 from . import proxy, feed, reporting
 
-def run():
+def setup_logger():
     logger = logging.getLogger(__name__)
     handler = logging.StreamHandler()
     formatter = logging.Formatter('[%(levelname)s] %(name)s:\n%(message)s\n')
@@ -40,6 +40,9 @@ def run():
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.setLevel(logging.DEBUG)
+
+def run():
+    setup_logger()
     proxy.init(bot)
     feed.init(bot)
     bot.run(config.get('discord_token'))

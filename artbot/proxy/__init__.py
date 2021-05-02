@@ -1,5 +1,3 @@
-import importlib
-
 from .cog import ProxyCog
 
 def init(bot):
