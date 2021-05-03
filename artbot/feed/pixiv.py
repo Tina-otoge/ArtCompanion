@@ -65,20 +65,20 @@ class Pixiv(Feed):
 
     @classmethod
     def message_from_post(cls, post) -> dict:
-        link = f'<https://pixiv.net/artworks/{post.id}>'
+        link = f'<https://www.pixiv.net/artworks/{post.id}>'
         log.debug(f'Parsing pixiv post {link}')
         title = post.title
         artist = f'{post.user.name} ({post.user.account})'
-        tags = [
-            f'**{x}**' if x in cls.TAGS_STRONG else x
-            for x in filter(lambda x: cls.TAGS_TR.get(x, x), post.tags)
+        tags = [f'{x} (**{cls.TAGS_TR[x]}**)' if x in cls.TAGS_TR else x for x in post.tags]
+        content = [
+            link,
+            f'{title} by {artist}',
+            'Tags: ' + ', '.join(tags),
         ]
+        if post.type == 'ugoira':
+            content.append('This is an animation (うごイラ) 📹')
         return {
-            'content': '\n'.join([
-                link,
-                f'{title} by {artist}',
-                'Tags: ' + ' '.join(tags),
-            ]),
+            'content': '\n'.join(content),
             'files': cls.get_files(post),
         }
 

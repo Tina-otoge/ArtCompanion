@@ -31,18 +31,22 @@ from . import proxy, feed, reporting
 
 def setup_logger():
     logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
     handler = logging.StreamHandler()
     formatter = logging.Formatter('[%(levelname)s] %(name)s:\n%(message)s\n')
     handler.setFormatter(formatter)
+    handler.setLevel(logging.DEBUG)
     logger.addHandler(handler)
     handler = reporting.WebhookHandler()
     handler.setLevel(logging.WARNING)
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-    logger.setLevel(logging.DEBUG)
+    return logger
+
+logger = setup_logger()
 
 def run():
-    setup_logger()
     proxy.init(bot)
     feed.init(bot)
+    logger.debug('Starting...')
     bot.run(config.get('discord_token'))
