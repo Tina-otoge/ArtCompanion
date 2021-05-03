@@ -9,7 +9,7 @@ import discord
 from discord.ext import commands, tasks
 from discord_webhook import DiscordWebhook
 
-from artbot import data, services, on_error
+from artbot import config, data, services, on_error
 from .feed import Feed
 from ..proxy.proxy import Proxy
 
@@ -17,16 +17,16 @@ log = logging.getLogger(__name__)
 
 class FeedCog(commands.Cog):
     # Time between each post, avoid API limit
-    WAIT_ITERATION_TIME = 2
+    WAIT_ITERATION_TIME = config.get('feed_post_wait', 2)
     # Limit the amount of posts to post. WARNING: will update memory like if all posts were posted
     # Change this to 0 for "dry" mode
-    RESULTS_LIMIT = None
+    RESULTS_LIMIT = config.get('feed_posts_limit', None)
     # Limit of pics to post per post
-    PICS_LIMIT = 5
+    PICS_LIMIT = config.get('feed_pics_limit', 5)
     # Should the memory be ignored
-    IGNORE_MEMORY = False
+    IGNORE_MEMORY = config.get('feed_ignore_memory', False)
     # Time before each iteration
-    LOOP_TIME = {'hours': 1}
+    LOOP_TIME = config.get('feed_loop_time', {'hours': 1})
 
     def __init__(self, bot: commands.Bot):
         self.bot : commands.Bot = bot
