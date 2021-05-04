@@ -1,7 +1,17 @@
 import twitter
+import tweepy
 
 from artbot import config
 from .proxy import Proxy
+
+class TwitterAPIs:
+    def __init__(self, credentials):
+        key, secret = config.get('twitter_key'), config.get('twitter_secret')
+        self.twitter = twitter.Api(key, secret, credentials[0], credentials[1])
+        tweepy_auth = tweepy.OAuthHandler(key, secret)
+        tweepy_auth.set_access_token(credentials[0], credentials[1])
+        self.tweepy = tweepy.API(tweepy_auth)
+
 
 class Twitter(Proxy):
     def __init__(self):
@@ -20,13 +30,12 @@ class Twitter(Proxy):
 
     @staticmethod
     def twitter_login(credentials):
-        key, secret = config.get('twitter_key'), config.get('twitter_secret')
-        return twitter.Api(key, secret, credentials[0], credentials[1])
+        return TwitterAPIs(credentials)
 
     @staticmethod
-    def twitter_like(api: twitter.Api, status_id):
-        api.CreateFavorite(status_id=status_id)
+    def twitter_like(api: TwitterAPIs, status_id):
+        api.twitter.CreateFavorite(status_id=status_id)
 
     @staticmethod
-    def twitter_retweet(api: twitter.Api, status_id):
-        api.PostRetweet(status_id)
+    def twitter_retweet(api: TwitterAPIs, status_id):
+        api.twitter.PostRetweet(status_id)

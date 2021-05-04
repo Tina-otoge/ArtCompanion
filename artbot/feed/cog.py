@@ -93,7 +93,7 @@ class FeedCog(commands.Cog):
             log.warning('Could not login')
             return
 
-        if self.IGNORE_MEMORY:
+        if self.IGNORE_MEMORY and 'memory' in rules:
             del rules['memory']
         result = feed.handle(api, rules)
         memory = result.get('memory')
@@ -129,13 +129,14 @@ class FeedCog(commands.Cog):
         await channel.send(**result)
 
     @staticmethod
-    def post_webhooks(result, webhooks, options):
+    def post_webhooks(result: dict, webhooks: str, options: dict):
+        files = result.pop('files', [])
+        options.update(result)
         hook = DiscordWebhook(
             webhooks,
-            content=result.get('content'),
             **options,
         )
-        for file in result.get('files', []):
+        for file in files:
             hook.add_file(file=file.get('file'), filename=file.get('name'))
         hook.execute()
 

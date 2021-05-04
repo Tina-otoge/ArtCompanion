@@ -10,9 +10,12 @@ class Pixiv(Feed):
     FEEDS = {'following': 'pixiv_following'}
 
     TAGS_TR = {
-        'オリジナル': 'original'
+        'オリジナル': 'original',
+        'アズールレーン': 'Azur Lane',
+        'アークナイツ': 'Arknights',
+        'ホロライブ': 'Hololive',
+        '原神': 'Genshin Impact',
     }
-    TAGS_STRONG = ['original']
 
     @classmethod
     def pixiv_following(cls, api: PixivAPIs, watcher):
@@ -29,7 +32,7 @@ class Pixiv(Feed):
 
     @classmethod
     def message_from_posts(cls, posts, watcher):
-        with open('dump.json', 'w') as f:
+        with open('pixiv_dump.json', 'w') as f:
             json.dump(posts, f, indent=2)
             log.debug('Dumped Pixiv response')
         memory = watcher.get('memory', {})
@@ -77,9 +80,14 @@ class Pixiv(Feed):
         ]
         if post.type == 'ugoira':
             content.append('This is an animation (うごイラ) 📹')
+        options = {}
+        if cls.RICH_WEBHOOK:
+            # options['avatar_url'] = list(post.user.profile_image_urls.values())[0]
+            options['username'] = f'{artist} on Pixiv'
         return {
             'content': '\n'.join(content),
             'files': cls.get_files(post),
+            **options,
         }
 
     @staticmethod

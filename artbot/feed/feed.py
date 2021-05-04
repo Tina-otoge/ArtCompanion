@@ -1,5 +1,10 @@
+from artbot import config
+
+
 class Feed:
     FEEDS = {}
+    # Use author name and avatar as webhook
+    RICH_WEBHOOK = config.get('rich_webhook', False)
 
     @classmethod
     def handle(cls, api, watcher):
