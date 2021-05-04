@@ -10,6 +10,16 @@ log = logging.getLogger(__name__)
 class Twitter(Feed):
     FEEDS = {'list': 'twitter_list'}
 
+    @staticmethod
+    def dump_result(result, name='dump'):
+        with open(f'twitter_{name}.json', 'w') as f:
+            json.dump({"results": [x._json for x in result]}, f, indent=2)
+            log.debug(f'Dumped Twitter response "{name}"')
+
+    @staticmethod
+    def filter_pics(x: tweepy.Status):
+        return 'media' in x.entities and x.entities['media'][0]['type'] == 'photo'
+
     @classmethod
     def twitter_list(cls, api: TwitterAPIs, watcher):
         last_id = watcher.get('memory', {}).get('last_id', 0)
@@ -18,15 +28,14 @@ class Twitter(Feed):
             include_rts=watcher.get('retweets', False),
             count=200,
         )
-        with open('twitter_dump.json', 'w') as f:
-            json.dump({"results": [x._json for x in posts]}, f, indent=2)
-            log.debug('Dumped Twitter response')
+        cls.dump_result(posts)
         if posts:
             posts = filter(lambda x: x.id > last_id, posts)
             if watcher.get('pics_only', False):
-                posts = filter(lambda x: 'media' in x.entities, posts)
+                posts = filter(cls.filter_pics, posts)
             posts = sorted(posts, key=lambda x: x.id)
             last_id = posts[-1].id
+        cls.dump_result(posts, 'filtered')
         return {
             'memory': {'last_id': last_id},
             'result': [cls.content_from_tweet(x) for x in posts]
@@ -38,5 +47,9 @@ class Twitter(Feed):
         if x.text.startswith('RT '):
             content += f'\nRetweeted 🔁 by {x.user.name}'
             content += f'\n(<https://twitter.com/{x.user.screen_name}>)'
+        if hasattr(x, 'extended_entities'):
+            nb_pics = len(x.extended_entities['media'])
+            if nb_pics > 1:
+                content += f'\n{nb_pics} PICS'
         return {'content': content}
 
