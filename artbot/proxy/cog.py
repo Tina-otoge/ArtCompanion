@@ -9,7 +9,7 @@ from .proxy import Proxy
 log = logging.getLogger(__name__)
 
 class ProxyCog(commands.Cog):
-    def __init__(self, bot, services=[]):
+    def __init__(self, bot : commands.Bot, services=[]):
         self.bot = bot
 
     @commands.command()
@@ -34,14 +34,19 @@ class ProxyCog(commands.Cog):
                 await message.add_reaction(emoji)
 
     @commands.Cog.listener()
-    async def on_reaction_add(self, reaction: discord.Reaction, user: discord.User):
+    async def on_raw_reaction_add(self, payload : discord.RawReactionActionEvent):
+        user = payload.member
         if user == self.bot.user:
             return
+        emoji = str(payload.emoji)
+        channel = self.bot.get_channel(payload.channel_id)
+        message = await channel.fetch_message(payload.message_id)
+        content = message.content
         for service in services.all(Proxy, init=True):
-            trigger = service.triggers.get(reaction.emoji)
+            trigger = service.triggers.get(emoji)
             if not trigger:
                 continue
-            match = service.extract(reaction.message.content)
+            match = service.extract(content)
             if not match:
                 continue
             author = service.login(user)
