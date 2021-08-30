@@ -1,6 +1,7 @@
 import logging
 import json
 
+from artbot.storage import Storage
 from .feed import Feed
 from ..proxy.pixiv import PixivAPIs
 
@@ -8,14 +9,7 @@ log = logging.getLogger(__name__)
 
 class Pixiv(Feed):
     FEEDS = {'following': 'pixiv_following'}
-
-    TAGS_TR = {
-        'オリジナル': 'original',
-        'アズールレーン': 'Azur Lane',
-        'アークナイツ': 'Arknights',
-        'ホロライブ': 'Hololive',
-        '原神': 'Genshin Impact',
-    }
+    TRANSLATIONS = Storage('translations.json')
 
     @classmethod
     def pixiv_following(cls, api: PixivAPIs, watcher):
@@ -72,7 +66,11 @@ class Pixiv(Feed):
         log.debug(f'Parsing pixiv post {link}')
         title = post.title
         artist = f'{post.user.name} ({post.user.account})'
-        tags = [f'{x} (**{cls.TAGS_TR[x]}**)' if x in cls.TAGS_TR else x for x in post.tags]
+        tags = [
+            f'{x} (**{cls.TRANSLATIONS.get(x)}**)'
+            if cls.TRANSLATIONS.has(x) else x
+            for x in post.tags
+        ]
         content = [
             link,
             f'{title} by {artist}',

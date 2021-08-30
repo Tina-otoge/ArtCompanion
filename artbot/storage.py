@@ -27,3 +27,6 @@ class Storage:
         self.data[key] = value
         self.save()
         return value
+
+    def has(self, key):
+        return key in self.data
