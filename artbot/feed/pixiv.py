@@ -36,7 +36,11 @@ class Pixiv(Feed):
         memory = {'last_id': posts[-1].id} if posts else None
         result = [
             cls.message_from_post(x) for x in posts
-            if cls.verify_nsfw(x, watcher.get('safe'))
+            if all([
+                cls.verify_nsfw(x, watcher.get('safe')),
+                cls.verify_tags_whitelist(x, watcher.get('whitelist')),
+                cls.verify_tags_blacklist(x, watcher.get('blacklist')),
+            ])
         ]
         return {
             'memory': memory,
@@ -94,3 +98,24 @@ class Pixiv(Feed):
             return True
         post_safe = post.age_limit == 'all-age'
         return post_safe == safe
+
+    @staticmethod
+    def verify_tags_blacklist(post, blacklist=None):
+        """Returns false if any tag from the post is found in blacklist"""
+        if not blacklist:
+            return True
+        for tag in post.tags:
+            if tag in blacklist:
+                log.info(f'Found blacklisted tag {tag}')
+                return False
+        return True
+
+    @staticmethod
+    def verify_tags_whitelist(post, whitelist=None):
+        """Returns true if any tag in the whitelist is found in post"""
+        if not whitelist:
+            return True
+        for tag in whitelist:
+            if tag in post.tags:
+                return True
+        return False
