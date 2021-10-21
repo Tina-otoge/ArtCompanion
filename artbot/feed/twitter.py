@@ -17,7 +17,7 @@ class Twitter(Feed):
             log.debug(f'Dumped Twitter response "{name}"')
 
     @staticmethod
-    def filter_pics(x: tweepy.Status):
+    def filter_pics(x: tweepy.Tweet):
         return 'media' in x.entities and x.entities['media'][0]['type'] == 'photo'
 
     @classmethod
@@ -42,7 +42,7 @@ class Twitter(Feed):
         }
 
     @staticmethod
-    def content_from_tweet(x: tweepy.Status):
+    def content_from_tweet(x: tweepy.Tweet):
         content = f'https://twitter.com/user/status/{x.id}'
         if x.text.startswith('RT '):
             content += f'\nRetweeted 🔁 by {x.user.name}'
@@ -52,4 +52,3 @@ class Twitter(Feed):
             if nb_pics > 1:
                 content += f'\n{nb_pics} PICS'
         return {'content': content}
-

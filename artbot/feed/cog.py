@@ -29,7 +29,7 @@ class FeedCog(commands.Cog):
     LOOP_TIME = config.get('feed_loop_time', {'hours': 1})
 
     def __init__(self, bot: commands.Bot):
-        self.bot : commands.Bot = bot
+        self.bot: commands.Bot = bot
         self.loop.start()
         self.update_status.start()
 

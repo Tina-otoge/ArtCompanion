@@ -11,24 +11,19 @@ class Pixiv(Feed):
     FEEDS = {'following': 'pixiv_following'}
     TRANSLATIONS = Storage('translations.json')
 
-    @classmethod
-    def pixiv_following(cls, api: PixivAPIs, watcher):
-        posts = api.papi.me_following_works(
-            include_stats=False,
-            include_sanity_level=False,
-            image_sizes=['large', 'medium']
-        ).get('response', [])
-        posts = [
-            api.papi.works(x.id).get('response', [x])[0] if x.is_manga else x
-            for x in posts
-        ]
-        return cls.message_from_posts(posts, watcher)
 
     @classmethod
-    def message_from_posts(cls, posts, watcher):
+    def pixiv_following(cls, api: PixivAPIs, watcher):
+        posts = api.apapi.illust_follow()
         with open('pixiv_dump.json', 'w') as f:
             json.dump(posts, f, indent=2)
             log.debug('Dumped Pixiv response')
+        posts = posts.get('illusts', [])
+        return cls.message_from_posts(posts, watcher)
+
+
+    @classmethod
+    def message_from_posts(cls, posts, watcher):
         memory = watcher.get('memory', {})
         last_id = memory.get('last_id', 0)
         posts = list(filter(lambda x: x.id > last_id, posts))
@@ -42,6 +37,7 @@ class Pixiv(Feed):
                 cls.verify_tags_blacklist(x, watcher.get('blacklist')),
             ])
         ]
+        log.debug(f'Got {len(result)} posts')
         return {
             'memory': memory,
             'result': result,
@@ -50,12 +46,13 @@ class Pixiv(Feed):
     @staticmethod
     def get_files(post) -> list:
         urls = (
-            [x.image_urls for x in post.metadata.pages]
-            if post.is_manga
+            [x.image_urls for x in post.meta_pages]
+            if post.page_count > 1
             else [post.image_urls]
         )
         png = urls[0].large.endswith('.png')
-        size = 'medium' if (post.is_manga or (png and post.width > 2000)) else 'large'
+        # size = 'medium' if (post.is_manga or (png and post.width > 2000)) else 'large'
+        size = 'large'
         return [
             {
                 'url': x[size],
@@ -71,8 +68,8 @@ class Pixiv(Feed):
         title = post.title
         artist = f'{post.user.name} ({post.user.account})'
         tags = [
-            f'{x} (**{cls.TRANSLATIONS.get(x)}**)'
-            if cls.TRANSLATIONS.has(x) else x
+            f'{x.name} ({x.translated_name})'
+            if x.translated_name else x.name
             for x in post.tags
         ]
         content = [
@@ -96,7 +93,7 @@ class Pixiv(Feed):
     def verify_nsfw(post, safe=None):
         if safe is None:
             return True
-        post_safe = post.age_limit == 'all-age'
+        post_safe = post.x_restrict == 0
         return post_safe == safe
 
     @staticmethod
@@ -105,7 +102,7 @@ class Pixiv(Feed):
         if not blacklist:
             return True
         for tag in post.tags:
-            if tag in blacklist:
+            if tag.name in blacklist:
                 log.info(f'Found blacklisted tag {tag}')
                 return False
         return True
@@ -116,6 +113,6 @@ class Pixiv(Feed):
         if not whitelist:
             return True
         for tag in whitelist:
-            if tag in post.tags:
+            if tag.name in post.tags:
                 return True
         return False
