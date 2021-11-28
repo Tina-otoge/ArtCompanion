@@ -1,5 +1,5 @@
 arrow
-discord.py
+py-cord
 discord-webhook
 pixivpy
 python-twitter
