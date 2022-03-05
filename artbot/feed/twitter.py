@@ -43,7 +43,7 @@ class Twitter(Feed):
 
     @staticmethod
     def content_from_tweet(x: tweepy.Tweet):
-        content = f'https://twitter.com/user/status/{x.id}'
+        content = f'https://twitter.com/{x.user.screen_name}/status/{x.id}'
         if x.text.startswith('RT '):
             content += f'\nRetweeted 🔁 by {x.user.name}'
             content += f'\n(<https://twitter.com/{x.user.screen_name}>)'
