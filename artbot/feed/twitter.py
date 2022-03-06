@@ -43,8 +43,10 @@ class Twitter(Feed):
 
     @staticmethod
     def content_from_tweet(x: tweepy.Tweet):
-        content = f'https://twitter.com/{x.user.screen_name}/status/{x.id}'
-        if x.text.startswith('RT '):
+        if not hasattr(x, 'retweeted_status'):
+            content = f'https://twitter.com/{x.user.screen_name}/status/{x.id}'
+        else:
+            content = f'https://twitter.com/{x.retweeted_status.user.screen_name}/status/{x.retweeted_status.id}'
             content += f'\nRetweeted 🔁 by {x.user.name}'
             content += f'\n(<https://twitter.com/{x.user.screen_name}>)'
         if hasattr(x, 'extended_entities'):
