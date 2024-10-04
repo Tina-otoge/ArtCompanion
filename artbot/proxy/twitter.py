@@ -1,9 +1,11 @@
-import logging
 import functools
-import twitter
+import logging
+
 import tweepy
+import twitter
 
 from artbot import config
+
 from .proxy import Proxy
 
 log = logging.getLogger(__name__)
@@ -11,11 +13,13 @@ log = logging.getLogger(__name__)
 TWITTER_API_ALREADY_FAVORITED_CODE = 139
 TWITTER_API_ALREADY_RETWEETED_CODE = 327
 
+
 def ignore_error(codes=None):
     if not codes:
         codes = []
     elif not isinstance(codes, list):
-            codes = [codes]
+        codes = [codes]
+
     def inner(f):
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
@@ -23,15 +27,17 @@ def ignore_error(codes=None):
                 return f(*args, **kwargs)
             except twitter.TwitterError as e:
                 error = e.message[0]
-                if error['code'] in codes:
-                    log.debug(f'Ignoring error {error}')
+                if error["code"] in codes:
+                    log.debug(f"Ignoring error {error}")
+
         return wrapper
+
     return inner
 
 
 class TwitterAPIs:
     def __init__(self, credentials):
-        key, secret = config.get('twitter_key'), config.get('twitter_secret')
+        key, secret = config.get("twitter_key"), config.get("twitter_secret")
         self.twitter = twitter.Api(key, secret, credentials[0], credentials[1])
         tweepy_auth = tweepy.OAuthHandler(key, secret)
         tweepy_auth.set_access_token(credentials[0], credentials[1])
@@ -42,14 +48,14 @@ class Twitter(Proxy):
     def __init__(self):
         super().__init__(
             extracters=[
-                r'http(?:s)?:\/\/(?:www)?twitter\.com\/[a-zA-Z0-9_]+\/status\/(\d+)'
+                r"http(?:s)?:\/\/(?:www)?twitter\.com\/[a-zA-Z0-9_]+\/status\/(\d+)"
             ],
             triggers={
-                '❤️': 'twitter_like',
-                '🔁': 'twitter_retweet',
+                "❤️": "twitter_like",
+                "🔁": "twitter_retweet",
                 # '👀': 'twitter_follow',
             },
-            data_key='twitter_users',
+            data_key="twitter_users",
             authenticator=self.twitter_login,
         )
 

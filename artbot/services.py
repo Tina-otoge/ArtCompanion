@@ -11,6 +11,7 @@ def all(class_, init=False):
         result = [x() for x in result]
     return result
 
+
 def get(class_, name, init=False):
     name = name.lower()
     for c in all(class_):
