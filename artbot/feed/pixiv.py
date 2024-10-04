@@ -1,6 +1,7 @@
 import json
 import logging
 
+from artbot import config
 from artbot.storage import Storage
 
 from ..proxy.pixiv import PixivAPIs
@@ -56,6 +57,10 @@ class Pixiv(Feed):
         png = urls[0].large.endswith(".png")
         # size = 'medium' if (post.is_manga or (png and post.width > 2000)) else 'large'
         size = "large"
+        proxy = config.get("pixiv_proxy")
+        if proxy:
+            for x in urls:
+                x[size] = x[size].replace("//i.pximg.net/", f"//{proxy}/")
         return [
             {
                 "url": x[size],
