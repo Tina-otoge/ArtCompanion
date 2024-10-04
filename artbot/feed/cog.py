@@ -149,6 +149,6 @@ class FeedCog(commands.Cog):
         log.debug(f"Downloading {url}")
         response = requests.get(url, headers={"referer": url})
         if response.status_code != 200:
-            log.warning(response)
+            log.warning(response, response.content)
             return None
         return io.BytesIO(response.content)
